@@ -83,8 +83,7 @@ export default function Pokedex() {
     try {
       const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${nameOrId}`)
       if (!res.ok) return null
-      const data = await res.json()
-      return data
+      return await res.json()
     } catch {
       return null
     }
@@ -163,7 +162,7 @@ export default function Pokedex() {
     setLoading(false)
   }
 
-  const filteredPokemons = [...pokemons].sort((a, b) => {
+  const sortedPokemons = [...pokemons].sort((a, b) => {
     if (!order) return 0
     if (order === "id-asc") return a.id - b.id
     if (order === "id-desc") return b.id - a.id
@@ -185,11 +184,105 @@ export default function Pokedex() {
 
     genRefs.current.forEach(ref => ref && observer.observe(ref))
     return () => observer.disconnect()
-  }, [filteredPokemons])
+  }, [sortedPokemons])
 
   return (
     <div className="bg-white w-full min-h-[100vh]">
-      {/* ... restante do JSX permanece igual, sem alteração necessária ... */}
+      <div className="flex flex-col items-center justify-center px-6 mt-8">
+        <h1 className="text-4xl text-center mb-6">
+          {pokemons.length} <span className="font-bold">Pokémons</span> for you to choose your favorite
+        </h1>
+
+        {/* Filtros */}
+        <div className="flex flex-wrap justify-center gap-4 w-full max-w-[1500px]">
+          <input
+            type="text"
+            placeholder="Pesquisar por nome..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-80 bg-[#F2F2F2] p-4 rounded-2xl shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-yellow-400"
+          />
+          <select
+            value={typeFilter}
+            onChange={e => setTypeFilter(e.target.value)}
+            className="w-48 bg-[#F2F2F2] p-4 rounded-2xl shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 capitalize"
+          >
+            <option value="">Todos os tipos</option>
+            {Object.keys(typeGradients).map(type => (
+              <option key={type} value={type} className="capitalize">{type}</option>
+            ))}
+          </select>
+          <select
+            value={generationFilter}
+            onChange={e => setGenerationFilter(e.target.value)}
+            className="w-48 bg-[#F2F2F2] p-4 rounded-2xl shadow-lg focus:outline-none focus:ring-2 focus:ring-green-400 capitalize"
+          >
+            <option value="">Todas as gerações</option>
+            {generations.map((g, idx) => (
+              <option key={g.name} value={g.name}>Gen {idx + 1}</option>
+            ))}
+          </select>
+          <select
+            value={order}
+            onChange={e => setOrder(e.target.value)}
+            className="w-48 bg-[#F2F2F2] p-4 rounded-2xl shadow-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
+          >
+            <option value="">Ordenar</option>
+            <option value="id-asc">ID ↑</option>
+            <option value="id-desc">ID ↓</option>
+            <option value="name-asc">Nome A-Z</option>
+            <option value="name-desc">Nome Z-A</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4 py-8 max-w-[1200px] mx-auto">
+        {sortedPokemons.map((p, i) => (
+          <div
+            key={`${p.id}-${i}`}
+            ref={el => { if (el) genRefs.current.set(p.id, el) }}
+            data-id={p.id}
+            className={`rounded-2xl shadow-2xl flex items-center justify-between transform transition-all duration-500 hover:scale-105 hover:shadow-xl bg-[#f5f4f4]
+              ${visibleIds.has(p.id) ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+          >
+            <div className="flex flex-col justify-center items-center space-y-2 ml-2 w-[35%] sm:w-[50%]">
+              <p>Nº {p.id.toString().padStart(3, '0')}</p>
+              <h2 className="capitalize font-semibold text-xl sm:text-2xl">{p.name}</h2>
+              <div className="flex gap-2 sm:gap-4 mt-2 justify-center">
+                {p.types.map(t => (
+                  <span key={t.type.name} className="px-2 py-1 text-xs sm:text-sm rounded-full capitalize text-white"
+                    style={{ background: typeGradients[t.type.name] || "#ccc" }}>
+                    {t.type.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="w-[65%] rounded-br-2xl rounded-tr-2xl flex justify-center items-center p-2"
+              style={{ background: typeGradients[p.types[0].type.name] || "#fff" }}>
+              <Image
+                src={p.sprites.other["official-artwork"].front_default}
+                alt={p.name}
+                width={208} // md:w-48 = 12rem = 192px
+                height={208}
+                className="object-contain"
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Botão carregar mais */}
+      {!search && !typeFilter && !generationFilter && currentGenIndex < genOrder.length && (
+        <div className="flex justify-center my-8">
+          <button
+            onClick={loadNextGeneration}
+            className="px-6 py-3 bg-yellow-400 text-white rounded-2xl shadow-lg hover:bg-yellow-500 transition-colors"
+          >
+            {loading ? "Carregando..." : "Ver mais"}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
