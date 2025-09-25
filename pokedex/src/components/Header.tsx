@@ -4,7 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
-import Logo from "@/assets/Group.png"
+import Logo from "@/assets/group.png"
 
 export default function Header() {
   const pathname = usePathname()

@@ -268,7 +268,7 @@ export default function Pokedex() {
               ${visibleIds.has(p.id) ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
           >
             <div className="flex flex-col justify-center items-center space-y-2 ml-2 w-[35%] sm:w-[50%]">
-              <p>Nº {p.id.toString().padStart(3, '0')}</p>
+              <p>{p.id.toString().padStart(3, '0')}</p>
               <h2 className="capitalize font-semibold text-xl sm:text-2xl">{p.name}</h2>
               <div className="flex flex-col gap-10 sm:gap-10 mt-2 justify-center">
                 {p.types.map(t => (
@@ -278,6 +278,7 @@ export default function Pokedex() {
                       alt={t.type.name}
                       width={202}
                       height={202}
+                      className="rounded-lg"
                     />
                   </div>
                 ))}
