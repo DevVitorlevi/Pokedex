@@ -20,6 +20,7 @@ interface Generation {
   url: string
 }
 
+// Gradientes ainda podem ser usados para o fundo do card
 const typeGradients: Record<string, string> = {
   grass: "linear-gradient(to right, #4E8234, #6B9B4D)",
   bug: "linear-gradient(to right, #728F23, #9DB650)",
@@ -39,6 +40,28 @@ const typeGradients: Record<string, string> = {
   steel: "linear-gradient(to right, #6C6C78, #9DA3A6)",
   dark: "linear-gradient(to right, #3A2E2F, #5C4B50)",
   flying: "linear-gradient(to right, #7B8FA1, #A3B1C1)",
+}
+
+// Ícones oficiais da geração VIII
+const typeIcons: Record<string, string> = {
+  grass: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/12.png",
+  fire: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/10.png",
+  water: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/11.png",
+  bug: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/7.png",
+  normal: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/1.png",
+  electric: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/13.png",
+  fighting: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/2.png",
+  poison: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/4.png",
+  ground: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/5.png",
+  flying: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/3.png",
+  psychic: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/14.png",
+  rock: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/6.png",
+  ice: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/15.png",
+  ghost: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/8.png",
+  dragon: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/16.png",
+  dark: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/17.png",
+  steel: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/9.png",
+  fairy: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/18.png",
 }
 
 export default function Pokedex() {
@@ -68,7 +91,6 @@ export default function Pokedex() {
 
   const genOrder = Object.keys(generationIds)
 
-  // Carregar tipos e gerações
   useEffect(() => {
     fetch("https://pokeapi.co/api/v2/type")
       .then(res => res.json())
@@ -109,7 +131,6 @@ export default function Pokedex() {
     }
   }
 
-  // Carregar Pokémons conforme filtros
   const loadFilteredPokemons = useCallback(async () => {
     if (!search && !typeFilter && !generationFilter) {
       setPokemons([])
@@ -249,12 +270,16 @@ export default function Pokedex() {
             <div className="flex flex-col justify-center items-center space-y-2 ml-2 w-[35%] sm:w-[50%]">
               <p>Nº {p.id.toString().padStart(3, '0')}</p>
               <h2 className="capitalize font-semibold text-xl sm:text-2xl">{p.name}</h2>
-              <div className="flex gap-2 sm:gap-4 mt-2 justify-center">
+              <div className="flex flex-col gap-10 sm:gap-10 mt-2 justify-center">
                 {p.types.map(t => (
-                  <span key={t.type.name} className="px-2 py-1 text-xs sm:text-sm rounded-full capitalize text-white"
-                    style={{ background: typeGradients[t.type.name] || "#ccc" }}>
-                    {t.type.name}
-                  </span>
+                  <div key={t.type.name} className="w-30 h-0">
+                    <Image
+                      src={typeIcons[t.type.name] || "/placeholder.png"}
+                      alt={t.type.name}
+                      width={202}
+                      height={202}
+                    />
+                  </div>
                 ))}
               </div>
             </div>
@@ -263,7 +288,7 @@ export default function Pokedex() {
               <Image
                 src={p.sprites.other["official-artwork"].front_default}
                 alt={p.name}
-                width={208} // md:w-48 = 12rem = 192px
+                width={208}
                 height={208}
                 className="object-contain"
               />
