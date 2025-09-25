@@ -4,6 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { Menu, X } from "lucide-react"
+import Logo from "@/assets/Group.png"
 
 export default function Header() {
   const pathname = usePathname()
@@ -18,7 +19,7 @@ export default function Header() {
   return (
     <header className="bg-[#F5DB13] flex items-center justify-between p-4 shadow-lg relative">
       {/* Logo */}
-
+        <Image src={Logo} alt="" className="w-40"></Image>
       {/* Desktop menu */}
       <nav className="hidden md:flex">
         <ul className="flex space-x-10">

@@ -1,10 +1,11 @@
 import Image from "next/image"
 import Link from "next/link"
+import Pika from "@/assets/pikachu.png"
 export default function HomePage() {
   return (
-      <div className="bg-gradient-to-b from-[#F5DB13] to-[#F2B807] w-screen h-[calc(100vh-89px)]">
+      <div className="bg-gradient-to-b from-[#F5DB13] to-[#F2B807] w-screen h-[calc(100vh-91px)]">
         <div className="flex items-center justify-between h-full">
-            <div className="w-3xl flex-col space-y-25 ml-50">
+            <div className="w-3xl flex-col space-y-25 ml-40">
                 <h1 className="text-7xl tracking-[1rem]"><span className="font-bold">Find</span> all your  favorite <span className="font-bold">Pokemon</span></h1>
                 <h2 className="text-4xl">You can know the type of Pokemon, its strengths, disadvantages and <br /> abilities</h2>
                 <button className="relative bg-[#73D677]
@@ -15,6 +16,7 @@ export default function HomePage() {
                transition-all duration-200"><Link href={'/pokedex'}>See Pokemons</Link></button>
             </div>
             <div>
+              <Image src={Pika} alt=""></Image>
             </div>  
         </div>
       </div>
