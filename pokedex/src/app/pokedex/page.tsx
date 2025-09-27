@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import Image from "next/image"
 
 interface Pokemon {
@@ -20,7 +20,6 @@ interface Generation {
   url: string
 }
 
-// Gradientes ainda podem ser usados para o fundo do card
 const typeGradients: Record<string, string> = {
   grass: "linear-gradient(to right, #4E8234, #6B9B4D)",
   bug: "linear-gradient(to right, #728F23, #9DB650)",
@@ -42,7 +41,6 @@ const typeGradients: Record<string, string> = {
   flying: "linear-gradient(to right, #7B8FA1, #A3B1C1)",
 }
 
-// Ícones oficiais da geração VIII
 const typeIcons: Record<string, string> = {
   grass: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/12.png",
   fire: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/types/generation-viii/brilliant-diamond-and-shining-pearl/10.png",
@@ -73,9 +71,8 @@ export default function Pokedex() {
   const [generations, setGenerations] = useState<Generation[]>([])
   const [pokemons, setPokemons] = useState<Pokemon[]>([])
   const [loading, setLoading] = useState(false)
-  const [currentGenIndex, setCurrentGenIndex] = useState(0)
-  const genRefs = useRef<Map<number, HTMLDivElement>>(new Map())
-  const [visibleIds, setVisibleIds] = useState<Set<number>>(new Set())
+  const [currentIndex, setCurrentIndex] = useState(1)
+  const batchSize = 100
 
   const generationIds: Record<string, [number, number]> = {
     "generation-i": [1, 151],
@@ -134,8 +131,8 @@ export default function Pokedex() {
   const loadFilteredPokemons = useCallback(async () => {
     if (!search && !typeFilter && !generationFilter) {
       setPokemons([])
-      setCurrentGenIndex(0)
-      await loadNextGeneration()
+      setCurrentIndex(1)
+      await loadNextBatch()
       return
     }
 
@@ -167,51 +164,37 @@ export default function Pokedex() {
     loadFilteredPokemons()
   }, [loadFilteredPokemons])
 
-  const fetchGenerationIncremental = async (genName: string) => {
-    const [start, end] = generationIds[genName]
-    for (let i = start; i <= end; i++) {
-      const data = await fetchPokemonByName(i)
-      if (data) setPokemons(prev => [...prev, data])
-    }
-  }
-
-  const loadNextGeneration = async () => {
-    if (currentGenIndex >= genOrder.length) return
+  const loadNextBatch = async () => {
+    if (currentIndex > 1010) return
     setLoading(true)
-    await fetchGenerationIncremental(genOrder[currentGenIndex])
-    setCurrentGenIndex(prev => prev + 1)
+    const newPokemons: Pokemon[] = []
+
+    for (let i = currentIndex; i < currentIndex + batchSize && i <= 1010; i++) {
+      const data = await fetchPokemonByName(i)
+      if (data) newPokemons.push(data)
+    }
+
+    setPokemons(prev => [...prev, ...newPokemons])
+    setCurrentIndex(prev => prev + batchSize)
     setLoading(false)
   }
 
-  const sortedPokemons = [...pokemons].sort((a, b) => {
-    if (!order) return 0
-    if (order === "id-asc") return a.id - b.id
-    if (order === "id-desc") return b.id - a.id
-    if (order === "name-asc") return a.name.localeCompare(b.name)
-    if (order === "name-desc") return b.name.localeCompare(a.name)
-    return 0
-  })
-
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        const id = Number(entry.target.getAttribute("data-id"))
-        if (entry.isIntersecting) {
-          setVisibleIds(prev => new Set(prev).add(id))
-          observer.unobserve(entry.target)
-        }
-      })
-    }, { threshold: 0.1 })
-
-    genRefs.current.forEach(ref => ref && observer.observe(ref))
-    return () => observer.disconnect()
-  }, [sortedPokemons])
+  const sortedPokemons = useMemo(() => {
+    return [...pokemons].sort((a, b) => {
+      if (!order) return 0
+      if (order === "id-asc") return a.id - b.id
+      if (order === "id-desc") return b.id - a.id
+      if (order === "name-asc") return a.name.localeCompare(b.name)
+      if (order === "name-desc") return b.name.localeCompare(a.name)
+      return 0
+    })
+  }, [pokemons, order])
 
   return (
     <div className="bg-white w-full min-h-[100vh]">
       <div className="flex flex-col items-center justify-center px-6 mt-8">
         <h1 className="text-4xl text-center mb-6">
-          {pokemons.length} <span className="font-bold">Pokémons</span> for you to choose your favorite
+          {pokemons.length || 0} <span className="font-bold">Pokémons</span> for you to choose your favorite
         </h1>
 
         {/* Filtros */}
@@ -262,10 +245,7 @@ export default function Pokedex() {
         {sortedPokemons.map((p, i) => (
           <div
             key={`${p.id}-${i}`}
-            ref={el => { if (el) genRefs.current.set(p.id, el) }}
-            data-id={p.id}
-            className={`rounded-2xl shadow-2xl flex items-center justify-between transform transition-all duration-500 hover:scale-105 hover:shadow-xl bg-[#f5f4f4]
-              ${visibleIds.has(p.id) ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+            className="rounded-2xl shadow-2xl flex items-center justify-between bg-[#f5f4f4]"
           >
             <div className="flex flex-col justify-center items-center space-y-2 ml-2 w-[35%] sm:w-[50%]">
               <p>{p.id.toString().padStart(3, '0')}</p>
@@ -279,6 +259,7 @@ export default function Pokedex() {
                       width={202}
                       height={202}
                       className="rounded-lg"
+                      loading="lazy"
                     />
                   </div>
                 ))}
@@ -292,6 +273,7 @@ export default function Pokedex() {
                 width={208}
                 height={208}
                 className="object-contain"
+                loading="lazy"
               />
             </div>
           </div>
@@ -299,10 +281,10 @@ export default function Pokedex() {
       </div>
 
       {/* Botão carregar mais */}
-      {!search && !typeFilter && !generationFilter && currentGenIndex < genOrder.length && (
+      {!search && !typeFilter && !generationFilter && currentIndex <= 1010 && (
         <div className="flex justify-center my-8">
           <button
-            onClick={loadNextGeneration}
+            onClick={loadNextBatch}
             className="px-6 py-3 bg-yellow-400 text-white rounded-2xl shadow-lg hover:bg-yellow-500 transition-colors"
           >
             {loading ? "Carregando..." : "Ver mais"}
