@@ -13,7 +13,6 @@ export default function Header() {
   const links = [
     { href: "/home", label: "Home" },
     { href: "/pokedex", label: "Pokedex" },
-    { href: "/legends", label: "Legendaries" },
   ]
 
   return (
